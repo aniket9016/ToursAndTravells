@@ -1,0 +1,107 @@
+﻿@model ToursAndTravells.Models.User
+
+@{
+    ViewData["Title"] = Model.UserId == 0 ? "Create User" : "Edit User";
+}
+
+<h2 class="text-center">@ViewData["Title"]</h2>
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg">
+                <div class="card-body">
+                    <form asp-action="AddOrEdit" method="post">
+                        @Html.HiddenFor(model => model.UserId)
+
+                        <div class="mb-3">
+                            @Html.LabelFor(model => model.UserName, new { @class = "form-label fw-bold" })
+                            @Html.TextBoxFor(model => model.UserName, new { @class = "form-control", placeholder = "Enter your name" })
+                            @Html.ValidationMessageFor(model => model.UserName, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(model => model.UserEmail, new { @class = "form-label fw-bold" })
+                            @Html.TextBoxFor(model => model.UserEmail, new { @class = "form-control", placeholder = "Enter your email" })
+                            @Html.ValidationMessageFor(model => model.UserEmail, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(model => model.UserPhone, new { @class = "form-label fw-bold" })
+                            @Html.TextBoxFor(model => model.UserPhone, new { @class = "form-control", placeholder = "Enter your phone number", type = "number" })
+                            @Html.ValidationMessageFor(model => model.UserPhone, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(model => model.UserPassword, new { @class = "form-label fw-bold" })
+                            @Html.TextBoxFor(model => model.UserPassword, new { @class = "form-control", placeholder = "Enter your password" })
+                            @Html.ValidationMessageFor(model => model.UserPassword, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(model => model.CountryId, new { @class = "form-label fw-bold" })
+                            <select id="CountryId" name="CountryId" class="form-control">
+                                <option value="">Select Country</option>
+                                @if (ViewBag.Countries != null)
+                                {
+                                    foreach (var country in (SelectList)ViewBag.Countries)
+                                    {
+                                        <option value="@country.Value">@country.Text</option>
+                                    }
+                                }
+                            </select>
+
+                            @Html.ValidationMessageFor(model => model.CountryId, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(model => model.StateId, new { @class = "form-label fw-bold" })
+                            <select id="StateId" name="StateId" class="form-control">
+                                <option value="">Select State</option>
+                            </select>
+                            @Html.ValidationMessageFor(model => model.StateId, "", new { @class = "text-danger" })
+                        </div>
+
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i> Save
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to List
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#CountryId').change(function () {
+                var countryId = $(this).val();
+                if (countryId) {
+                    $.ajax({
+                        url: '/Users/GetStatesByCountry',
+                        type: 'GET',
+                        data: { countryId: countryId },
+                        success: function (data) {
+                            $('#StateId').empty();
+                            $('#StateId').append('<option value="">Select State</option>');
+                            $.each(data, function (index, state) {
+                                $('#StateId').append('<option value="' + state.stateId + '">' + state.stateName + '</option>');
+                            });
+                        }
+                    });
+                } else {
+                    $('#StateId').empty();
+                    $('#StateId').append('<option value="">Select State</option>');
+                }
+            });
+        });
+    </script>
+}
+
