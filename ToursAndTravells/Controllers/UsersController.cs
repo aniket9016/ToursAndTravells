@@ -41,13 +41,10 @@ namespace ToursAndTravells.Controllers
             return View(await users.ToListAsync());
         }
 
-
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
             var user = await _context.Users
                 .Include(u => u.Country)
@@ -55,19 +52,20 @@ namespace ToursAndTravells.Controllers
                 .FirstOrDefaultAsync(m => m.UserId == id);
 
             if (user == null)
-            {
                 return NotFound();
-            }
 
             return View(user);
         }
 
+        [HttpGet]
         public async Task<IActionResult> AddOrEdit(int? id)
         {
             ViewBag.Countries = new SelectList(_context.Countries, "CountryId", "CountryName");
 
             if (id == null)
             {
+                // New user, so empty states list
+                ViewBag.States = new SelectList(Enumerable.Empty<State>(), "StateId", "StateName");
                 return View(new User());
             }
 
@@ -77,9 +75,28 @@ namespace ToursAndTravells.Controllers
                 return NotFound();
             }
 
+            // Populate countries with selected country
             ViewBag.Countries = new SelectList(_context.Countries, "CountryId", "CountryName", user.CountryId);
 
+            // Load states for selected country and select user's state
+            var states = _context.State
+                .Where(s => s.CountryId == user.CountryId)
+                .ToList();
+            ViewBag.States = new SelectList(states, "StateId", "StateName", user.StateId);
+
             return View(user);
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> LoadEditForm(int id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+                return NotFound();
+
+            ViewBag.Countries = new SelectList(_context.Countries, "CountryId", "CountryName", user.CountryId);
+            return View("AddOrEdit", user);
         }
 
         [HttpPost]
@@ -88,11 +105,11 @@ namespace ToursAndTravells.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (id == 0) 
+                if (id == 0)
                 {
                     _context.Add(user);
                 }
-                else 
+                else
                 {
                     try
                     {
@@ -101,20 +118,16 @@ namespace ToursAndTravells.Controllers
                     catch (DbUpdateConcurrencyException)
                     {
                         if (!UserExists(user.UserId))
-                        {
                             return NotFound();
-                        }
                         else
-                        {
                             throw;
-                        }
                     }
                 }
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CountryId"] = new SelectList(_context.Countries, "CountryId", "CountryName", user.CountryId);
-            ViewData["StateId"] = new SelectList(_context.State, "StateId", "StateName", user.StateId);
+
+            ViewBag.Countries = new SelectList(_context.Countries, "CountryId", "CountryName", user.CountryId);
             return View(user);
         }
 
@@ -135,6 +148,7 @@ namespace ToursAndTravells.Controllers
         {
             return _context.Users.Any(e => e.UserId == id);
         }
+
         [HttpGet]
         public JsonResult GetStatesByCountry(int countryId)
         {
@@ -145,6 +159,5 @@ namespace ToursAndTravells.Controllers
 
             return Json(states);
         }
-
     }
 }

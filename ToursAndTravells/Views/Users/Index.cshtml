@@ -55,10 +55,15 @@
                         <td>@Html.DisplayFor(modelItem => item.State.StateName)</td>
                         <td>@Html.DisplayFor(modelItem => item.Country.CountryName)</td>
                         <td>
-                            <a asp-action="AddOrEdit" asp-route-id="@item.UserId" class="btn btn-primary btn-sm">
-                                <i class="fas fa-edit"></i> Edit
-                            </a>
+                            <!-- Edit as POST Form (no id in URL) -->
+                            <form asp-action="LoadEditForm" method="post" style="display:inline;">
+                                <input type="hidden" name="id" value="@item.UserId" />
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                            </form>
 
+                            <!-- Delete Form -->
                             <form asp-action="Delete" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this user?');">
                                 <input type="hidden" name="id" value="@item.UserId" />
                                 <button type="submit" class="btn btn-danger btn-sm">
